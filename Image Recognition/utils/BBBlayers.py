@@ -40,6 +40,9 @@ class BBBConv2d(nn.Module):
 
 
     def convprobforward(self, input):
+        '''
+        poop
+        '''
         sig_weight = torch.exp(self.sigma_weight)
         weight = self.mu_weight + sig_weight * self.eps_weight.normal_()
         kl_ = math.log(self.q_logvar_init) - self.sigma_weight + (sig_weight**2 + self.mu_weight**2) / (2 * self.q_logvar_init ** 2) - 0.5
