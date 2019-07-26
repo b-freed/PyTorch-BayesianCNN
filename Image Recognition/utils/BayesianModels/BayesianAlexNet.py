@@ -46,6 +46,16 @@ class BBBAlexNet(nn.Module):
         self.layers = nn.ModuleList(layers)
 
     def probforward(self, x):
+        '''
+        What I (Ben) thinks this function does:
+        
+        takes an input image x, and computes the output of bayesian inference, i.e.
+        P(x|D)=E_q(w|theta)[P(x|w)], where D=data seen in training so far, q(w|theta)=variational approximation of posterior
+        
+        Also returns kl, which (I think) is kl divergence between q and prior P(w).
+        
+        Important notes here: this structure will need to be changed if we are not using a diagonal gaussian because otherwise the kl can't simply be summed
+        '''
         kl = 0
         for layer in self.layers:
             if hasattr(layer, 'convprobforward') and callable(layer.convprobforward):
