@@ -12,7 +12,7 @@ class BBBConv2d(nn.Module):
         if out_channels % groups != 0:
             raise ValueError('out_channels must be divisible by groups')
         self.q_logvar_init = q_logvar_init
-        self.p_logvar_init = p_logvar_init
+        self.p_logvar_init = p_logvar_init # not totally sure what the difference is btwn q_logvar_init and p_logvar_init
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -40,12 +40,18 @@ class BBBConv2d(nn.Module):
 
 
     def convprobforward(self, input):
+        '''
+        Seems to take input and map it through the layer, with weights sampled from the variatonal dist for this layer's weights
+        
+        '''
         sig_weight = torch.exp(self.sigma_weight)
         weight = self.mu_weight + sig_weight * self.eps_weight.normal_()
+        # create a vector of kl divergences for each individual weight's divergence from the prior(?)
+        # this expression looks similar to the kl between two gaussians, but I'm not quite seeing how it matches up
         kl_ = math.log(self.q_logvar_init) - self.sigma_weight + (sig_weight**2 + self.mu_weight**2) / (2 * self.q_logvar_init ** 2) - 0.5
         bias = None
-        
         out = F.conv2d(input, weight, bias, self.stride, self.padding, self.dilation, self.groups)
+        # because we assume each weight is distributed according to its own independent gaussian we can sum the kl's for each weight to get total kl
         kl = kl_.sum() 
         return out, kl
 
